@@ -3,16 +3,13 @@ import re
 import time
 import logging
 import socket
-
 from playwright.sync_api import sync_playwright, TimeoutError as PWTimeoutError, Error as PlaywrightError
-
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(message)s"
 )
 logger = logging.getLogger("amazon-scraper")
-
 
 def try_click(locator, label="(unknown)", timeout=2000):
     try:
@@ -30,6 +27,7 @@ def try_click(locator, label="(unknown)", timeout=2000):
         logger.exception(f"Unexpected error while clicking {label}: {e}")
         return False
 
+
 def has_internet(host="www.amazon.de", port=443, timeout=3) -> bool:
     try:
         socket.setdefaulttimeout(timeout)
@@ -37,7 +35,6 @@ def has_internet(host="www.amazon.de", port=443, timeout=3) -> bool:
             return True
     except OSError:
         return False
-
 
 logger.info("Verifying internet connection")
 if not has_internet():
@@ -58,7 +55,6 @@ with sync_playwright() as p:
         except PlaywrightError:
             browser = p.chromium.launch(headless=False)  # fallback to Playwright's bundled Chromium
 
-
         logger.info("Step 2: open new page")
         page = browser.new_page()
 
@@ -69,7 +65,6 @@ with sync_playwright() as p:
         page.goto("https://www.amazon.de/", wait_until="domcontentloaded")
         logger.info("Success: page loaded ")
     
-           
         # Optional banners
         try_click(page.get_by_role("button", name="Weiter shoppen"), label="Weiter shoppen", timeout=5000)
         try_click(page.locator("#sp-cc-accept"), label="Cookie accept (#sp-cc-accept)", timeout=5000)
@@ -122,11 +117,9 @@ with sync_playwright() as p:
         result = {"title": title, "price": price}
         logger.info("Step 11: print final JSON result")
         print(json.dumps(result, ensure_ascii=False, indent=2))
-
         time.sleep(5)
 
-    except PWTimeoutError as e:
-        
+    except PWTimeoutError as e:        
         if not has_internet():
             logger.error("No internet connection detected. Please connect to the internet and try again.")
             # raise SystemExit(1)
